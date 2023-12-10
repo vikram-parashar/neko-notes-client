@@ -1,55 +1,52 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import axios from 'axios'
 import { DoubleArrowLeftIcon, FilePlusIcon } from '@radix-ui/react-icons'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Loading } from '../Loading'
+import { useSelector, useDispatch } from 'react-redux'
+import { getAllNotes } from '../../actions/notebookActions'
 
 export const Sidebar = () => {
-  const [selectedNotes, setSelectedNotes] = useState([])
-  const [myNotes, setMyNotes] = useState([
-    {
-      name: 'note1',
-      content:
-        'Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.',
-    },
-    {
-      name: 'note2',
-      content:
-        'Lorem ipsum dolor sit amet, officia excepteur ex fugiat reprehenderit enim labore culpa sint ad nisi Lorem pariatur mollit ex esse exercitation amet. Nisi anim cupidatat excepteur officia. Reprehenderit nostrud nostrud ipsum Lorem est aliquip amet voluptate voluptate dolor minim nulla est proident. Nostrud officia pariatur ut officia. Sit irure elit esse ea nulla sunt ex occaecat reprehenderit commodo officia dolor Lorem duis laboris cupidatat officia voluptate. Culpa proident adipisicing id nulla nisi laboris ex in Lorem sunt duis officia eiusmod. Aliqua reprehenderit commodo ex non excepteur duis sunt velit enim. Voluptate laboris sint cupidatat ullamco ut ea consectetur et est culpa et culpa duis.',
-    },
-    { name: 'note3', content: 'content3' },
-  ])
+  const dispatch = useDispatch()
+
+  const [loading, setLoading] = useState(false)
+  const [selectedNote, setSelectedNote] = useState(null)
+  const [myNotes, setMyNotes] = useState([])
 
   const handleFileChange = (event) => {
-    setSelectedNotes(event.target.files)
-    console.log(event.target.files)
-  }
+    const file = event.target.files[0]
 
-  const handleUpload = () => {
-    if (selectedFile) {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
+    if (file) {
+      const reader = new FileReader()
 
-      axios
-        .post('http://localhost:3000/upload', formData)
-        .then((response) => {
-          console.log('File uploaded successfully', response.data)
-        })
-        .catch((error) => {
-          console.error('Error uploading file', error)
-        })
+      reader.onload = (e) => {
+        const content = e.target.result
+        setSelectedNote({ name: file.name, content: content })
+      }
+
+      reader.readAsText(file)
     }
   }
+  const handleUpload = async () => {
+    setLoading(true)
+    const res = await axios.post(
+      'https://neko-notesbackendstorage.onrender.com/notebook/6575ecdd591cfaabf1140967/notes',
+      {
+        Title: selectedNote.name,
+        Text: selectedNote.content,
+      },
+    )
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    dispatch(getAllNotes())
+  }, [dispatch])
 
   return (
     <div className="ml-5 w-64 h-full">
+      {loading && <Loading />}
       <div className="flex items-center justify-between w-full">
         <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
           Notes
@@ -69,20 +66,15 @@ export const Sidebar = () => {
         </label>
       </div>
       <div>
-        {selectedNotes.length > 0 && (
+        {selectedNote && (
           <div className="py-5 flex flex-col items-center rounded-xl mt-3 px-5 bg-gray-200 dark:bg-gray-800">
             <div className="flex flex-col justify-center">
-              {Array.from(selectedNotes).map((note) => (
-                <div
-                  key={note.name}
-                  className="flex justify-between items-center"
-                >
-                  <h4 className="text-sm font-semibold">{note.name}</h4>
-                  <div className="p-3 ml-3">
-                    <DoubleArrowLeftIcon />
-                  </div>
+              <div className="flex justify-between items-center">
+                <h4 className="text-sm font-semibold">{selectedNote.name}</h4>
+                <div className="p-3 ml-3">
+                  <DoubleArrowLeftIcon />
                 </div>
-              ))}
+              </div>
             </div>
             <Button onClick={handleUpload} className="mt-5">
               Upload

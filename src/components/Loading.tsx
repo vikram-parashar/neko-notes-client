@@ -18,7 +18,7 @@ export const Loading: React.FC = () => {
   }, [])
 
   return (
-    <div className="bg-[rgba(0,0,0,0.9)] top-0 left-0 fixed h-screen w-screen flex items-center justify-center">
+    <div className="bg-[rgba(0,0,0,0.9)] z-50 top-0 left-0 fixed h-screen w-screen flex items-center justify-center">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
